@@ -14,61 +14,87 @@ class VoiceChatScreen extends StatefulWidget {
 }
 
 class _VoiceChatScreenState extends State<VoiceChatScreen> {
-  final aiService = AIService();
   final speechService = SpeechService();
   final ttsService = TTSService();
+  bool isSpeaking = false;
 
   @override
   void initState() {
     super.initState();
-    speechService.initialize();
+    initSpeech();
   }
 
-  void startListening() {
-    speechService.start((text) {
-      context.read<VoiceChatCubit>().sendVoiceMessage(text);
+  Future<void> initSpeech() async {
+    await speechService.initialize();
+    _startListening();
+  }
+
+  void _startListening() {
+    if (isSpeaking) return; // не слушать во время TTS
+    speechService.start((recognized) {
+      if(recognized == "") return;
+      speechService.stop(); // стоп на всякий случай
+      Future.microtask(() {
+        context.read<VoiceChatCubit>().sendVoiceMessage(recognized);
+      });
     });
+
+    // speechService.start((text) {
+    //   print("✅ Распознано: $text");
+    //   Future.microtask(() {
+    //     context.read<VoiceChatCubit>().sendVoiceMessage(text);
+    //   });
+    // });
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => VoiceChatCubit(aiService),
-      child: Scaffold(
-        appBar: AppBar(title: const Text("Голосовой репетитор")),
-        body: BlocConsumer<VoiceChatCubit, VoiceChatState>(
-          listener: (context, state) {
-            if (!state.isLoading && state.aiMessage.isNotEmpty) {
-              ttsService.speak(state.aiMessage);
-            }
-          },
-          builder: (context, state) {
-            return Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Text(
-                    "Вы сказали:\n${state.userMessage}",
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    "Ответ AI:\n${state.aiMessage}",
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  const Spacer(),
-                  state.isLoading
-                      ? const CircularProgressIndicator()
-                      : ElevatedButton.icon(
-                        icon: const Icon(Icons.mic),
-                        label: const Text("Говорить"),
-                        onPressed: startListening,
+    return Scaffold(
+      appBar: AppBar(title: const Text("Голосовой репетитор")),
+      body: BlocConsumer<VoiceChatCubit, VoiceChatState>(
+        listenWhen: (prev, curr) => prev.aiMessage != curr.aiMessage,
+        listener: (context, state) async {
+          if (state.aiMessage.isNotEmpty) {
+            setState(() => isSpeaking = true);
+            await ttsService.speak(state.aiMessage);
+            setState(() => isSpeaking = false);
+            _startListening(); // начать слушать снова
+          }
+        },
+        builder: (context, state) {
+          return Column(
+            children: [
+              Expanded(
+                child: BlocBuilder<VoiceChatCubit, VoiceChatState>(
+                  builder:
+                      (context, state) => ListView(
+                        padding: const EdgeInsets.all(16),
+                        children: [
+                          if (state.userMessage.isNotEmpty)
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Text("👤 ${state.userMessage}"),
+                            ),
+                          if (state.aiMessage.isNotEmpty)
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text("🤖 ${state.aiMessage}"),
+                            ),
+                          if (state.isLoading)
+                            const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: CircularProgressIndicator(),
+                            ),
+                        ],
                       ),
-                ],
+                ),
               ),
-            );
-          },
-        ),
+              const SizedBox(height: 16),
+              Text(isSpeaking ? "🔈 Speaking..." : "🎤 Listening..."),
+              const SizedBox(height: 16),
+            ],
+          );
+        },
       ),
     );
   }
