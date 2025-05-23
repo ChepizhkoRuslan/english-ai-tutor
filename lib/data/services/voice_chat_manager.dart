@@ -2,7 +2,6 @@ import 'package:english_ai_tutor/data/services/speech_service.dart';
 import 'package:english_ai_tutor/data/services/tts_service.dart';
 import 'package:flutter/cupertino.dart';
 import '../../features/voice_chat/voice_chat_cubit.dart';
-import '../models/chat_massage.dart';
 
 class VoiceChatManager {
   final SpeechService speech;
@@ -37,7 +36,7 @@ class VoiceChatManager {
         }
       },
       onStatus: (status) {
-        print("🎙 Status: $status");
+        debugPrint("🎙 Status: $status");
       },
     );
 

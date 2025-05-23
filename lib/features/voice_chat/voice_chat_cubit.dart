@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../../data/models/chat_massage.dart';
+import '../../data/models/chat_message.dart';
 import '../../data/services/ai_service.dart';
 
 part 'voice_chat_state.dart';
