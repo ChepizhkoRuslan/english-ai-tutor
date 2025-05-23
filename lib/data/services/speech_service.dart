@@ -21,7 +21,9 @@ class SpeechService {
           onResult(result.recognizedWords);
         }
       },
-      listenMode: ListenMode.dictation,
+      listenOptions: SpeechListenOptions(
+        listenMode: ListenMode.dictation,
+      ),
       localeId: 'en_US',
       pauseFor: const Duration(seconds: 30),
       listenFor: const Duration(seconds: 60),

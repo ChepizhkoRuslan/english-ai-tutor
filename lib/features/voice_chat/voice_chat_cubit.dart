@@ -12,16 +12,24 @@ class VoiceChatCubit extends Cubit<VoiceChatState> {
 
   Future<void> sendVoiceMessage(String text) async {
     final userMsg = ChatMessage(sender: 'user', text: text);
-    emit(state.copyWith(
-      isLoading: true,
-      messages: [...state.messages, userMsg],
-    ));
+    emit(
+      state.copyWith(isLoading: true, messages: [...state.messages, userMsg]),
+    );
 
     final reply = await aiService.getReply(text);
     final aiMsg = ChatMessage(sender: 'ai', text: reply);
-    emit(state.copyWith(
-      isLoading: false,
-      messages: [...state.messages, aiMsg],
-    ));
+    emit(
+      state.copyWith(isLoading: false, messages: [...state.messages, aiMsg]),
+    );
+  }
+
+  void addUserMessage(String text) {
+    final msg = ChatMessage(sender: 'user', text: text);
+    emit(state.copyWith(isLoading: true, messages: [...state.messages, msg]));
+  }
+
+  void addAIMessage(String text) {
+    final msg = ChatMessage(sender: 'ai', text: text);
+    emit(state.copyWith(isLoading: false, messages: [...state.messages, msg]));
   }
 }
