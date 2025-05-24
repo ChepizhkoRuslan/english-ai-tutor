@@ -3,13 +3,20 @@ name: Build AAB
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
     name: Build Android App Bundle
     runs-on: ubuntu-latest
 
+    env:
+      GROG_API_KEY: ${{ secrets.GROG_API_KEY }}
+
     steps:
+      - run: echo "✅ GitHub Actions работает!"
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -20,6 +27,12 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
 
       - name: Build AAB
         run: flutter build appbundle --release
