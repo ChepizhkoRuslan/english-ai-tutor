@@ -4,8 +4,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 class AIService {
-  final String apiKey = dotenv.get('GROG_API_KEY');
+
   Future<String> getReply(String userInput) async {
+    String apiKey = '';
+    bool isCI = bool.fromEnvironment('CI', defaultValue: false);
+    if (!isCI) {
+      apiKey = dotenv.get('GROG_API_KEY');
+    } else {
+      apiKey = String.fromEnvironment('GROG_API_KEY');
+    }
     // final url = Uri.parse('https://api.openai.com/v1/chat/completions');
     final url = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
     final response = await http.post(
