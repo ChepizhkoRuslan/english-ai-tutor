@@ -11,7 +11,12 @@ jobs:
     name: Build Android App Bundle
     runs-on: ubuntu-latest
 
+    env:
+      GROG_API_KEY: ${{ secrets.GROG_API_KEY }}
+
     steps:
+      - run: echo "✅ GitHub Actions работает!"
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
